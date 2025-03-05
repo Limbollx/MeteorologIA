@@ -18,29 +18,28 @@ df = pd.read_csv(adr, sep=";", parse_dates=["date"])
 df_filtered = df[df['date'].dt.hour == 12].reset_index(drop=True)
 
 def reading(n):
-    # RH = df_filtered.at[n, 'RH'] / 100
-    # T_station = df_filtered.at[n, 'Tair']
-    # vent_station = df_filtered.at[n, 'Ws10'] * 3.6
-    RH = 0.84
-    T_station =  29
-    vent_station = 30
-    Qvap = -2446.43 * T_station + 2501875.143
+    RH = df_filtered.at[n, 'RH'] / 100
+    T_station = df_filtered.at[n, 'Tair']
+    vent_station = df_filtered.at[n, 'Ws10'] * 3.6
+    # Qvap = -2446.43 * T_station + 2501875.143
+    Qvap = 2257000
     if vent_station >= 20:
         h = 5 + 7.2 * np.sqrt(vent_station)
     else:
         h = 8 + 10 * np.sqrt(vent_station)
 
     Phi_temp = (T_corps - T_station) / R_th
-    Phi_solaire = 800
+    Phi_solaire = 300
     Phi_vent = -h * (T_corps - T_station)
     Phi_rh = -((M_sueur * Qvap) / (S_corps * (60**2) * 24)) * (1 - RH)
+    Phi_rh_standard = -((M_sueur * Qvap) / (S_corps * (60**2) * 24)) * (1 - 0.5)
     Phi_corps = 100 / S_corps
     Phi_values = [Phi_solaire, Phi_temp, Phi_vent, Phi_rh, Phi_corps]
     Phi_total = sum(Phi_values)
 
-    T_ressentie = (Phi_total - Phi_rh - Phi_corps) * R_th + T_corps
+    T_ressentie = (Phi_total - Phi_rh - Phi_corps + Phi_rh_standard) * R_th + T_corps
 
-    print('Temp ressentie:', T_ressentie)
+    print(f'Temp ressentie: {T_ressentie.round(1)}°C le {str(df_filtered["date"][n])[:-15]} à {str(df_filtered["date"][n])[11:-9]}')
 
     return Phi_total, T_ressentie, Phi_solaire, Phi_temp, Phi_vent, Phi_rh, Phi_corps, h, vent_station, RH
 
@@ -99,9 +98,9 @@ results.index = results.index.strftime('%Y-%m-%d')
 
 # print(twodimtable())
 
-reading(0)
+reading(1)
 
-# verifying('2024-01-01')
+# verifying('2024-01-02')
 
 # for i in range(len(df_filtered)):
 #     processing(i)
