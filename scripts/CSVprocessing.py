@@ -34,13 +34,13 @@ def reading(daytime):
     RH = df.at[index, 'RH'] / 100
     T_station = df.at[index, 'Tair']
     vent_station = df.at[index, 'Ws10'] * 3.6  # Conversion en km/h
-    Qvap = 2257000  # Chaleur latente d'évaporation de l'eau (J/kg)
+    # Qvap = 2257000  # Chaleur latente d'évaporation de l'eau (J/kg)
 
     h = (5 + 7.2 * np.sqrt(vent_station)) if vent_station >= 20 else (8 + 10 * np.sqrt(vent_station))
     
     # Calcul des flux thermiques
     Phi_temp = (T_corps - T_station) / R_th
-    Phi_solaire = 300  # Hypothèse constante
+    Phi_solaire = 207  # Hypothèse constante
     Phi_vent = -h * (T_corps - T_station)
     # Phi_rh = -((M_sueur * Qvap) / (S_corps * (60**2) * 24)) * (1 - RH)
     Phi_rh = 0.01*610.94*(np.exp((17.625*T_peau)/(T_peau+243.04))-RH*np.exp((17.625*T_station)/(T_station+243.04)))
@@ -55,7 +55,15 @@ def reading(daytime):
     
     return T_ressentie
 
-J1H1 = '2024-01-01-12:00'
+
+
+JourActuel = '2024-01-01-12:00'
 for _ in range(24):
-    reading(J1H1)
-    J1H1 = op.augmente_heure(J1H1)
+    save = reading(JourActuel)
+
+    mask = df["date"] == JourActuel
+    df.loc[mask, "Tressentie"] = float(f'{save:.2f}')
+
+    JourActuel = op.augmente_heure(JourActuel)
+
+df.to_csv(adr, sep=';', index=False)
