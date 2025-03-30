@@ -26,6 +26,10 @@ def get_index(daytime):
     target_index = df[df['date'] == target_datetime].index
     return target_index[0]
 
+def fonction_logistique(f1, f2, var, change=20, vitesse=1):
+    S = 1 / (1 + np.exp(-vitesse * (var - change)))
+    return f1 * (1 - S) + f2 * S
+
 def reading(daytime):
     """Calcule la température ressentie en fonction des paramètres météorologiques."""
 
@@ -36,8 +40,9 @@ def reading(daytime):
     vent_station = df.at[index, 'Ws10'] * 3.6  # Conversion en km/h
     # Qvap = 2257000  # Chaleur latente d'évaporation de l'eau (J/kg)
 
-    h = (5 + 7.2 * np.sqrt(vent_station)) if vent_station >= 20 else (8 + 10 * np.sqrt(vent_station))
-    
+    # h = (5 + 7.2 * np.sqrt(vent_station)) if vent_station >= 20 else (8 + 10 * np.sqrt(vent_station))
+    h = fonction_logistique((5 + 7.2 * np.sqrt(vent_station)),(8 + 10 * np.sqrt(vent_station)), vent_station)
+
     # Calcul des flux thermiques
     Phi_temp = (T_corps - T_station) / R_th
     Phi_solaire = 207  # Hypothèse constante
@@ -58,12 +63,15 @@ def reading(daytime):
 
 
 JourActuel = '2024-01-01-12:00'
-for _ in range(24):
-    save = reading(JourActuel)
+mask = df["date"] == JourActuel
 
-    mask = df["date"] == JourActuel
-    df.loc[mask, "Tressentie"] = float(f'{save:.2f}')
+reading('2024-03-27-12:00')
 
-    JourActuel = op.augmente_heure(JourActuel)
+# while JourActuel != '2025-01-01-00:00':
+# for _ in range(50):
+#     save = reading(JourActuel)
 
-df.to_csv(adr, sep=';', index=False)
+#     df.loc[mask, "Tressentie"] = float(f'{save:.2f}')
+
+#     JourActuel = op.augmente_heure(JourActuel)
+# df.to_csv(adr, sep=';', index=False)
