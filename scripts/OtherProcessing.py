@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 def augmente_heure(time_str, hours=1):
     # Transforme la date en string en NumPy datetime64
@@ -9,7 +10,11 @@ def augmente_heure(time_str, hours=1):
     
     # Retransforme en string
     return new_time_obj.strftime("%Y-%m-%d-%H:%M")
-    
+
+
+def fonction_logistique(f1, f2, var, change=18, vitesse=1.5):
+    S = 1 / (1 + np.exp(-vitesse * (var - change)))
+    return f1 * (1 - S) + f2 * S
 
 
 if __name__ == "__main__":

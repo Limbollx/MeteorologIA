@@ -26,10 +26,6 @@ def get_index(daytime):
     target_index = df[df['date'] == target_datetime].index
     return target_index[0]
 
-def fonction_logistique(f1, f2, var, change=20, vitesse=1):
-    S = 1 / (1 + np.exp(-vitesse * (var - change)))
-    return f1 * (1 - S) + f2 * S
-
 def reading(daytime):
     """Calcule la température ressentie en fonction des paramètres météorologiques."""
 
@@ -41,17 +37,26 @@ def reading(daytime):
     # Qvap = 2257000  # Chaleur latente d'évaporation de l'eau (J/kg)
 
     # h = (5 + 7.2 * np.sqrt(vent_station)) if vent_station >= 20 else (8 + 10 * np.sqrt(vent_station))
-    h = fonction_logistique((5 + 7.2 * np.sqrt(vent_station)),(8 + 10 * np.sqrt(vent_station)), vent_station)
+    h = op.fonction_logistique((5 + 7.2 * np.sqrt(vent_station)),
+                            (8 + 10 * np.sqrt(vent_station)),
+                             vent_station)
 
     # Calcul des flux thermiques
-    Phi_temp = (T_corps - T_station) / R_th
+    Phi_temp = ((T_corps - T_station) / R_th) * S_corps
+
     Phi_solaire = 207  # Hypothèse constante
-    Phi_vent = -h * (T_corps - T_station)
-    # Phi_rh = -((M_sueur * Qvap) / (S_corps * (60**2) * 24)) * (1 - RH)
-    Phi_rh = 0.01*610.94*(np.exp((17.625*T_peau)/(T_peau+243.04))-RH*np.exp((17.625*T_station)/(T_station+243.04)))
-    # Phi_rh_standard = -((M_sueur * Qvap) / (S_corps * (60**2) * 24)) * (1 - 0.5)
-    Phi_rh_standard = 0.01*610.94*(np.exp((17.625*T_peau)/(T_peau+243.04))-0.5*np.exp((17.625*T_station)/(T_station+243.04)))
-    Phi_corps = 100 / S_corps
+
+    Phi_vent = -h * (T_corps - T_station) * S_corps
+
+    Phi_rh = (0.01*610.94*(np.exp((17.625*T_peau)/
+                    (T_peau+243.04))-RH*np.exp((17.625*T_station)/
+                    (T_station+243.04)))) * S_corps
+    
+    Phi_rh_standard = (0.01*610.94*(np.exp((17.625*T_peau)/
+                    (T_peau+243.04))-0.5*np.exp((17.625*T_station)/
+                    (T_station+243.04)))) * S_corps
+    
+    Phi_corps = 100
     
     Phi_total = sum([Phi_solaire, Phi_temp, Phi_vent, Phi_rh, Phi_corps])
     T_ressentie = (Phi_total - Phi_corps - Phi_rh_standard) * R_th + T_corps
@@ -65,13 +70,13 @@ def reading(daytime):
 JourActuel = '2024-01-01-12:00'
 mask = df["date"] == JourActuel
 
-reading('2024-03-27-12:00')
+# reading('2024-03-27-12:00')
 
 # while JourActuel != '2025-01-01-00:00':
-# for _ in range(50):
-#     save = reading(JourActuel)
+for _ in range(20):
+    save = reading(JourActuel)
 
-#     df.loc[mask, "Tressentie"] = float(f'{save:.2f}')
+    df.loc[mask, "Tressentie"] = float(f'{save:.2f}')
 
-#     JourActuel = op.augmente_heure(JourActuel)
-# df.to_csv(adr, sep=';', index=False)
+    JourActuel = op.augmente_heure(JourActuel)
+df.to_csv(adr, sep=';', index=False)
