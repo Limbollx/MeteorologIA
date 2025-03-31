@@ -17,6 +17,16 @@ def fonction_logistique(f1, f2, var, change=18, vitesse=1.5):
     return f1 * (1 - S) + f2 * S
 
 
+def solar_irradiance(t, t_s, t_c):
+    if t_s <= t <= t_c:
+        return np.sin(np.pi * (t - t_s) / (t_c - t_s))
+    else:
+        return 0
+
+def time_to_float(time_str):
+    time = pd.to_datetime(time_str, format="%Y-%m-%d-%H:%M")
+    return time.hour + time.minute / 60
+
 if __name__ == "__main__":
     current_time = "2024-01-01-12:00"
     next_time = augmente_heure(current_time)
