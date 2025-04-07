@@ -12,7 +12,8 @@ adr = dirSrc + os.sep + 'data' + os.sep + 'full-data-st_pierre2-2024.csv'
 
 # Constantes pour les calculs thermiques
 T_corps = 37  # Température corporelle (°C)
-R_th = 0.1  # Résistance thermique (m²K/W)
+R_th = 0.3  # Résistance thermique (m²K/W)
+R_th_standard = 0.1  # Résistance thermique standard (m²K/W)
 M_sueur = 1.3  # Masse de sueur évaporée (kg/jour)
 S_corps = 1.5  # Surface corporelle (m²)
 T_peau = 30 # Température de la peau (C°)
@@ -79,16 +80,16 @@ def reading(df, daytime, index, show=False):
 
 
     # Flux thermique entre le corps et l’air (W)
-    Phi_temp = ((T_corps - T_station) / 0.3)/ S_corps  # (°C / (m²·K/W)) = W/m²
+    Phi_temp = ((T_corps - T_station) / R_th)/ S_corps  # (°C / (m²·K/W)) = W/m²
 
     time = op.time_to_float(daytime)
     # dirSol = np.cos(np.pi/2 * (time - 6) / (18 - 6)) * S_corps/2
     
     if time <= 12.5:
         # Facteur de projection solaire (sans unité)
-        dirSol = op.fonction_logistique(S_corps*0.1, np.pi*0.055, time ,change=9, vitesse=2)
+        dirSol = op.fonction_logistique(S_corps*0.25, np.pi*0.055, time ,change=9, vitesse=2)
     if time > 12.5:
-        dirSol = op.fonction_logistique(np.pi*0.055, S_corps*0.1, time ,change=16.5, vitesse=2)
+        dirSol = op.fonction_logistique(np.pi*0.055, S_corps*0.25, time ,change=16.5, vitesse=2)
 
     # Flux solaire incident sur le corps (W)
     Phi_solaire = df.at[index, 'Rglo'] * (dirSol/S_corps)  # (W/m²) = W/m²
@@ -110,7 +111,7 @@ def reading(df, daytime, index, show=False):
     Phi_total = sum([Phi_solaire, Phi_temp, Phi_vent, Phi_rh, Phi_corps])
 
     # Température ressentie (°C)
-    T_ressentie = ((Phi_total - Phi_corps - Phi_rh_standard) * 0.1 + T_corps)  # (W/m²) * (m²·°C/W) + °C = °C
+    T_ressentie = ((Phi_total - Phi_corps - Phi_rh_standard) * R_th_standard + T_corps)  # (W/m²) * (m²·°C/W) + °C = °C
 
     if show:
         print(f'Temp ressentie: {T_ressentie:.2f}°C le {str(df["date"][index])[:-15]} à {str(df["date"][index])[11:-9]}')
@@ -148,9 +149,16 @@ def draw(df=df_base, JourActuel='2024-01-01-12:00', mult=False):
         means.append(np.mean(temps))
     
     if mult == False:
+        y = np.array(means)
+        norm_y = (y - y.min()) / (y.max() - y.min())
+
+        # Interpolation manuelle entre rouge et bleu (du haut vers le bas)
+        # rouge = (1, 0, 0), bleu = (0, 0, 1)
+        colors = [(val, 0, 1 - val) for val in norm_y]
+
         # Créer le graphique
         plt.figure(figsize=(12, 6))
-        plt.scatter(dates, means, s=20, marker='o')
+        plt.scatter(dates, means, s=20, marker='o', color=colors)
         plt.plot(dates, means, alpha=0.3, linestyle='-', color='gray')
         
         # Lignes de référence
@@ -164,7 +172,7 @@ def draw(df=df_base, JourActuel='2024-01-01-12:00', mult=False):
                     horizontalalignment='center',
                     verticalalignment='bottom',
                     fontsize=10,
-                    color=(0.4,0.6,0.8))
+                    color=(0.2,0.4,1))
         
         # Mise en forme
         plt.gcf().autofmt_xdate()
