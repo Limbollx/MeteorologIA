@@ -12,7 +12,7 @@ def augmente_heure(time_str, hours=1):
     return new_time_obj.strftime("%Y-%m-%d-%H:%M")
 
 
-def fonction_logistique(f1, f2, var, change=18, vitesse=1.5):
+def fonction_logistique(f1, f2, var, change=10, vitesse=1.5):
     S = 1 / (1 + np.exp(-vitesse * (var - change)))
     return f1 * (1 - S) + f2 * S
 

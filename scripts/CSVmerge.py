@@ -26,8 +26,9 @@ df2 = df2.dropna(axis=1, how='all')
 
 # Merge the dataframes on the 'date' column
 merged_df = pd.merge(df1, df2, on="date", how="inner")
+merged_df = merged_df.drop('Wd10', axis='columns')
 
 # Save the merged dataframe
-merged_df.to_csv("merged_file.csv", sep=";", index=False)
+merged_df.to_csv(dirSrc + os.sep + "data" + os.sep + "full-data-st_pierre2-2024.csv", sep=";", index=False)
 
 print(merged_df)
