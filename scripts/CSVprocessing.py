@@ -2,6 +2,15 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
+
+from os.path import dirname, realpath, sep
+from sys import path
+
+dirPath = dirname(realpath(__file__))
+dirSrc = dirPath[0:dirPath.rfind(sep)]
+# Détermine les chemins absolus pour accéder aux ressources du projet
+path += [dirSrc, dirPath]
+
 import OtherProcessing as op
 
 # Définition des chemins et du fichier de données
@@ -9,6 +18,7 @@ dirPath = os.path.dirname(os.path.realpath(__file__))  # Chemin du script
 
 dirSrc = dirPath[0:dirPath.rfind(os.sep)]  # Répertoire parent
 adr = dirSrc + os.sep + 'data' + os.sep + 'full-data-st_pierre2-2024.csv'
+adrTr = dirSrc + os.sep + 'data' + os.sep + 'data-Tressentie.csv'
 
 # Constantes pour les calculs thermiques
 T_corps = 37  # Température corporelle (°C)
@@ -118,40 +128,67 @@ def reading(df, daytime, index, show=False):
     
     return T_ressentie
 
-def draw(df=df_base, JourActuel='2024-01-01-12:00', mult=False):
+def draw(df=df_base, JourActuel='2024-01-01-12:00', drawing=True):
     # Convertir la colonne 'date' en datetime
     df['date'] = pd.to_datetime(df['date'])
     
     # Initialiser un dictionnaire pour stocker les températures par jour
     daily_temps = {}
+    dates = []
+    means = []
     
     last_date = df['date'].max()
     end_date = op.augmente_heure(last_date)
     current_date = JourActuel
     
-    # Collecter les températures heure par heure
-    while current_date <= end_date:
-        index = get_index(df, current_date)
-        if index is not None and index < df.shape[0]:
-            temp = reading(df, current_date, index)
-            if temp is not None:  # Vérifier que la lecture est valide
-                day = pd.to_datetime(current_date).date()
-                if day not in daily_temps:
-                    daily_temps[day] = []
-                daily_temps[day].append(float(f'{temp:.2f}'))
-        current_date = op.augmente_heure(current_date)
-    
-    # Calculer les moyennes quotidiennes
-    dates = []
-    means = []
+    if os.path.isfile(adrTr):
+        df_tr = pd.read_csv(adrTr)
+        daily_temps = {}
+
+        for i, row in df_tr.iterrows():
+            timestamp = pd.to_datetime(row["Date"])
+            day = timestamp.date()
+            temp_val = row["TemperatureRessentie"]
+            if day not in daily_temps:
+                daily_temps[day] = []
+            daily_temps[day].append(temp_val)
+
+    else:
+        while current_date <= end_date:
+            index = get_index(df, current_date)
+            if index is not None and index < df.shape[0]:
+                temp_val = reading(df, current_date, index)
+                if temp_val is not None:
+                    day = pd.to_datetime(current_date).date()
+                    if day not in daily_temps:
+                        daily_temps[day] = []
+                    daily_temps[day].append(float(f'{temp_val:.2f}'))
+            current_date = op.augmente_heure(current_date)
+        
+        ligne_dates = []
+        ligne_temps = []
+
+        for day, temps in daily_temps.items():
+            ligne_temps.extend(temps)
+            ligne_dates.extend([pd.to_datetime(day)] * len(temps))
+
+        df_tr = pd.DataFrame({
+            "Date": ligne_dates,
+            "TemperatureRessentie": ligne_temps
+        })
+        df_tr.to_csv(adrTr, index=False)
+        print("📦 Nouveau CSV contenant les températures ressenties créé !")
+
+    ligne_temps = np.array([])
     for day, temps in daily_temps.items():
         dates.append(day)
         means.append(np.mean(temps))
-    
-    if mult == False:
-        y = np.array(means)
-        norm_y = (y - y.min()) / (y.max() - y.min())
+        ligne_temps = np.append(ligne_temps, temps)
 
+    y = np.array(means)
+    norm_y = (y - y.min()) / (y.max() - y.min())
+
+    if drawing == True:
         # Interpolation manuelle entre rouge et bleu (du haut vers le bas)
         # rouge = (1, 0, 0), bleu = (0, 0, 1)
         colors = [(val, 0, 1 - val) for val in norm_y]
@@ -183,19 +220,46 @@ def draw(df=df_base, JourActuel='2024-01-01-12:00', mult=False):
         
         plt.show()
     else:
-        df_tr = pd.DataFrame({
-            'Date': dates,
-            'Mean_Temperature': np.array(means).round(2)
-        })
-        return df_tr
-
+        return ligne_temps
+    
 def read_m(day, n, df=df_base):
     for _ in range(n+1):
         index = get_index(df, day)
         reading(df, day, index, show=True)
         day = op.augmente_heure(day)
 
-draw()
-# var = draw(mult=True)
-# var.to_csv(dirSrc + os.sep + 'data' + os.sep + 'temp_ressentie_2024.csv', index=False)
-# read_m('2024-01-01-12:00', 24)
+
+def extraire_donnees(df=df_base):
+    # Sélectionner toutes les colonnes sauf 'date' et 'hour' si elle existe
+    colonnes_a_exclure = ['date']
+    if 'hour' in df.columns:
+        colonnes_a_exclure.append('hour')
+    
+    # Créer une copie du DataFrame sans les colonnes exclues
+    df_sans_date = df.drop(columns=colonnes_a_exclure)
+    
+    # Convertir en matrice numpy
+    matrice_donnees = df_sans_date.to_numpy()
+    
+    return matrice_donnees[:-1]
+
+
+def extraire_dates(df=df_base):
+    # Extraire la colonne 'date' et convertir en numpy array
+    vecteur_dates = df['date'].astype(str).str[5:7].to_numpy()
+    
+    return vecteur_dates[:-1]
+
+def extraire_T_ressentie():
+    # Extraire la colonne 'date' et convertir en numpy array
+    vecteur_temp = draw(drawing=False)
+    
+    return vecteur_temp
+
+if __name__ == '__main__':
+    print(np.shape(extraire_donnees(df_base)))
+    print(np.shape(extraire_dates(df_base)))
+    print(np.shape(extraire_T_ressentie()))
+    # draw()
+
+    # read_m('2024-01-01-12:00', 24)
