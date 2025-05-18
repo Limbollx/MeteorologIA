@@ -3,7 +3,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 from os.path import dirname, realpath, sep
 from sys import path
-from numpy import random
+from numpy import random, array
 from time import time
 
 dirPath = dirname(realpath(__file__))
@@ -14,12 +14,12 @@ from scripts.CSVprocessing import extraire_donnees
 from scripts.CSVprocessing import extraire_dates
 from scripts.CSVprocessing import extraire_T_ressentie
 
-t = time.time()
+t = time()
 X = extraire_donnees()
-print(f'🗻 Données chargées en {time.time()-t:.2f}s')
-t = time.time()
+print(f'🗻 Données chargées en {time()-t:.2f}s')
+t = time()
 y = extraire_T_ressentie()
-print(f'♨️ Températures ressenties chargées en {time.time()-t:.2f}s')
+print(f'♨️ Températures ressenties chargées en {time()-t:.2f}s')
 
 # y = extraire_dates)
 # print('📆 Dates chargées')
@@ -38,10 +38,10 @@ def AI_initializing(random_state, trees=60):
 
 def find_seed(duration):
     try:
-        start_time = time.time()
+        start_time = time()
         best_seed = [0, float('inf')]
 
-        while time.time() - start_time < duration:
+        while time() - start_time < duration:
             random_state = random.randint(0, 10000)
             print(f"Trying {random_state} ...")
 
@@ -66,10 +66,10 @@ def find_seed(duration):
 # Meilleur MSE: 0.38, Seed: 8785 -> Temp
 
 def AI_accuracy(seed=8785):
-    t = time.time()
+    t = time()
     model, X_test, y_test = AI_initializing(seed)
 
-    print(f"🖼️ Modèle prêt en {time.time()-t:.2f}s")
+    print(f"🖼️ Modèle prêt en {time()-t:.2f}s")
 
     y_pred = model.predict(X_test)
     mse = mean_squared_error(y_test, y_pred)
@@ -79,9 +79,9 @@ def AI_accuracy(seed=8785):
     print(f"📈 Coefficient de détermination R² : {r2*100:.2f}%")
 
 def AI_test(values, seed=8785):
-    t = time.time()
+    t = time()
     model = AI_initializing(seed)[0]
-    print(f"🖼️ Modèle prêt en {time.time()-t:.2f}s")
+    print(f"🖼️ Modèle prêt en {time()-t:.2f}s")
 
     y_pred = model.predict(values)
     print(f"🌡️ Température ressentie prédite: {y_pred[0]:.2f}°C")
@@ -98,8 +98,9 @@ duration_seconds = h * 3600 + m * 60 + s
 # test = np.array([25.114,1.826183,90.0647,58.5357]).reshape(1, -1) # -> 24.88
 # test = np.array([24.65825000000001,0.366725,95.07833333333328,0.074775]).reshape(1, -1) # -> 32.74
 # test = np.array([24.301250000000003,1.259183333333333,69.69758333333333,445.9791666666666]).reshape(1, -1) # -> 17.01
-# test = np.array([25.1475,5.092041666666666,73.75066666666669,792.515]).reshape(1, -1) # -> 22.13
+# test = array([25.1475,5.092041666666666,73.75066666666669,792.515]).reshape(1, -1) # -> 22.13
+test = array([23.98825,0.5747583333333337,92.74583333333337,12.812108333333333]).reshape(1, -1) # -> 31.19
 
-# AI_test(test)
+AI_test(test)
 
-AI_accuracy()
+# AI_accuracy()
