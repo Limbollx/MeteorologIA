@@ -11,9 +11,17 @@
 #--------------------------------------------------
 
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 import os
+try:
+    import pandas as pd
+except Exception:
+    os.system("pip install pandas")
+    import pandas as pd
+try:
+    import matplotlib.pyplot as plt
+except Exception:
+    os.system("pip install matplotlib")
+    import matplotlib.pyplot as plt
 
 from os.path import dirname, realpath, sep
 from sys import path

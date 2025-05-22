@@ -1,10 +1,21 @@
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, r2_score
+import os
 from os.path import dirname, realpath, sep
 from sys import path
-from numpy import random, array
 from time import time
+try:
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.model_selection import train_test_split
+    from sklearn.metrics import mean_squared_error, r2_score
+except Exception:
+    os.system("pip install scikit-learn")
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.model_selection import train_test_split
+    from sklearn.metrics import mean_squared_error, r2_score
+try:
+    from numpy import random, array
+except Exception:
+    os.system("pip install numpy")
+    from numpy import random, array
 
 dirPath = dirname(realpath(__file__))
 dirSrc = dirPath[0:dirPath.rfind(sep)]
@@ -45,7 +56,7 @@ def find_seed(duration):
             random_state = random.randint(0, 10000)
             print(f"Trying {random_state} ...")
 
-            model, X_test, y_test = AI_initializing(random_state, trees=15)
+            model, X_test, y_test = AI_initializing(random_state, trees=20)
             y_pred = model.predict(X_test)
 
             mse = mean_squared_error(y_test, y_pred)
