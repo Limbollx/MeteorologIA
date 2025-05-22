@@ -63,23 +63,20 @@ def AI_initialisation(random_state, trees=60):
         X, y, test_size=0.01, random_state=random_state
     )
 
-    model = XGBRegressor(
-        n_estimators=trees,
-        random_state=random_state,
-        tree_method="gpu_hist",  # GPU acceleration
-        predictor="gpu_predictor",
-        verbosity=0
-    )
+    model = XGBRegressor(n_estimators = trees, random_state = random_state, tree_method = "gpu_hist", predictor = "gpu_predictor", verbosity = 0)
     model.fit(X_train, y_train)
 
     return model, X_test, y_test
 
-def find_seed(duration):
+def find_seed(duration='1:00:00'):
+
+    h, m, s = map(int, duration.split(':'))
+    duration_seconds = h * 3600 + m * 60 + s
     try:
         start_time = time()
         best_seed = [0, float('inf')]
 
-        while time() - start_time < duration:
+        while time() - start_time < duration_seconds:
             random_state = random.randint(0, 10000)
             print(f"Trying {random_state} ...")
 
