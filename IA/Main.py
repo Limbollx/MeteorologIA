@@ -13,6 +13,12 @@
 import os
 from sys import path
 from time import time
+
+try:
+    from pandas import read_csv, to_datetime
+except Exception:
+    os.system("pip install pandas")
+    from pandas import read_csv, to_datetime
 try:
     from xgboost import XGBRegressor
 except Exception:
@@ -51,24 +57,21 @@ t = time()
 y = extraire_T_ressentie()
 print(f'♨️ Températures ressenties chargées en {time()-t:.2f}s')
 
-# y = extraire_dates)
-# print('📆 Dates chargées')
-
 # noms_donnees = ['Tair','Ws10','RH','Rglo']
 
 #--------------------------------------------------
 # Définition des fonctions
 #--------------------------------------------------
 
-def AI_initialisation(random_state, trees=60):
+def AI_initialisation(seed, trees=50):
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.01, random_state=random_state
+        X, y, test_size=0.001, random_state=seed
     )
 
     try:
-        model = XGBRegressor(n_estimators = trees, random_state = random_state, tree_method = "gpu_hist", predictor = "gpu_predictor", verbosity = 0)
+        model = XGBRegressor(n_estimators = trees, random_state = seed, tree_method = "gpu_hist", predictor = "gpu_predictor", verbosity = 0)
     except:
-        model = XGBRegressor(n_estimators = trees, random_state = random_state, tree_method = "hist", predictor = "cpu_predictor", verbosity = 0)
+        model = XGBRegressor(n_estimators = trees, random_state = seed, tree_method = "hist", predictor = "cpu_predictor", verbosity = 0)
     
     model.fit(X_train, y_train)
     return model, X_test, y_test
@@ -131,16 +134,15 @@ def AI_test(values, seed=8785):
 # Meilleur MSE: 0.38, Seed: 8785 -> Temp
 
 if __name__ == "__main__":
-    find_seed(duration='1:00:00')
+    # find_seed(duration='1:00:00')
 
-    # test = np.array([29.08,1.786,77.98,240.0517]).reshape(1, -1) # -> 31.1
-    # test = np.array([25.114,1.826183,90.0647,58.5357]).reshape(1, -1) # -> 24.88
-    # test = np.array([24.65825000000001,0.366725,95.07833333333328,0.074775]).reshape(1, -1) # -> 32.74
-    # test = np.array([24.301250000000003,1.259183333333333,69.69758333333333,445.9791666666666]).reshape(1, -1) # -> 17.01
-    # test = array([25.1475,5.092041666666666,73.75066666666669,792.515]).reshape(1, -1) # -> 22.13
-    # test = array([23.98825,0.5747583333333337,92.74583333333337,12.812108333333333]).reshape(1, -1) # -> 31.19
+    test = array([26.96058333333334,0.5011416666666666,79.31083333333333,29.060075000000005]).reshape(1, -1) # -> 34.94,  2024-11-23 18:00:00
+    # test = array([26.4555,3.005141666666667,5.92750000000001,0.0]).reshape(1, -1) # -> 21.17,  2024-02-12 00:00:00
+    # test = array([24.65825000000001,0.366725,95.07833333333328,0.074775]).reshape(1, -1) # -> 32.74,   2024-01-02 20:00:00
+    # test = array([24.301250000000003,1.259183333333333,69.69758333333333,445.9791666666666]).reshape(1, -1) # -> 34.84,  2024-07-08 13:00:00
+    # test = array([25.1475,5.092041666666666,73.75066666666669,792.515]).reshape(1, -1) # -> 26.46,  2024-08-16 13:00:00
+    # test = array([23.98825,0.5747583333333337,92.74583333333337,12.812108333333333]).reshape(1, -1) # -> 31.35,  2024-01-15 07:00:00
 
-    # AI_test(test)
+    AI_test(test)
 
-    # AI_accuracy(seed=4833)
     # AI_accuracy()

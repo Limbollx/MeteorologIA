@@ -269,10 +269,10 @@ def extraire_T_ressentie():
     return vecteur_temp
 
 if __name__ == '__main__':
-    # print(np.shape(extraire_donnees(df_base)))
-    # print(np.shape(extraire_dates(df_base)))
-    # print(np.shape(extraire_T_ressentie()))
-    draw()
+    # print((extraire_donnees(df_base)))
+    print((extraire_dates(df_base)))
+    # print((extraire_T_ressentie()))
+    # draw()
 
     # read_m('2024-04-09-12:00', 0)
     # read_m('2024-08-12-12:00', 0)
