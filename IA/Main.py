@@ -62,18 +62,25 @@ print(f'♨️ Températures ressenties chargées en {time()-t:.2f}s')
 #--------------------------------------------------
 # Définition des fonctions
 #--------------------------------------------------
-
+sw = 0
 def AI_initialisation(seed, trees=50):
+    global sw
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.001, random_state=seed
     )
-
-    try:
-        model = XGBRegressor(n_estimators = trees, random_state = seed, tree_method = "gpu_hist", predictor = "gpu_predictor", verbosity = 0)
-    except:
+    if sw == 0:
+        try:
+            model = XGBRegressor(n_estimators = trees, random_state = seed, tree_method = "gpu_hist", predictor = "gpu_predictor", verbosity = 0)
+            model.fit(X_train, y_train)
+        except Exception:
+            print("patate")
+            model = XGBRegressor(n_estimators = trees, random_state = random_state, tree_method = "hist", predictor = "cpu_predictor", verbosity = 0)
+            model.fit(X_train, y_train)
+            sw = 1
+    else:
         model = XGBRegressor(n_estimators = trees, random_state = seed, tree_method = "hist", predictor = "cpu_predictor", verbosity = 0)
-    
-    model.fit(X_train, y_train)
+        model.fit(X_train, y_train)
+
     return model, X_test, y_test
 
 def find_seed(duration='1:00:00'):
