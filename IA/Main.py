@@ -15,11 +15,14 @@ from sys import path
 from time import time
 try:
     from xgboost import XGBRegressor
+except Exception:
+    os.system("pip install XGBoost")
+    from xgboost import XGBRegressor
+try:
     from sklearn.model_selection import train_test_split
     from sklearn.metrics import mean_squared_error, r2_score
 except Exception:
     os.system("pip install scikit-learn")
-    from sklearn.ensemble import RandomForestRegressor
     from sklearn.model_selection import train_test_split
     from sklearn.metrics import mean_squared_error, r2_score
 try:
