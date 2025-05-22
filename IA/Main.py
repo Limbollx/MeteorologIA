@@ -56,7 +56,6 @@ print(f'♨️ Températures ressenties chargées en {time()-t:.2f}s')
 
 # noms_donnees = ['Tair','Ws10','RH','Rglo']
 
-
 #--------------------------------------------------
 # Définition des fonctions
 #--------------------------------------------------
@@ -66,9 +65,12 @@ def AI_initialisation(random_state, trees=60):
         X, y, test_size=0.01, random_state=random_state
     )
 
-    model = XGBRegressor(n_estimators = trees, random_state = random_state, tree_method = "gpu_hist", predictor = "gpu_predictor", verbosity = 0)
+    try:
+        model = XGBRegressor(n_estimators = trees, random_state = random_state, tree_method = "gpu_hist", predictor = "gpu_predictor", verbosity = 0)
+    except:
+        model = XGBRegressor(n_estimators = trees, random_state = random_state, tree_method = "hist", predictor = "cpu_predictor", verbosity = 0)
+    
     model.fit(X_train, y_train)
-
     return model, X_test, y_test
 
 def find_seed(duration='1:00:00'):
@@ -129,7 +131,7 @@ def AI_test(values, seed=8785):
 # Meilleur MSE: 0.38, Seed: 8785 -> Temp
 
 if __name__ == "__main__":
-    find_seed(duration='0:00:10')
+    find_seed(duration='1:00:00')
 
     # test = np.array([29.08,1.786,77.98,240.0517]).reshape(1, -1) # -> 31.1
     # test = np.array([25.114,1.826183,90.0647,58.5357]).reshape(1, -1) # -> 24.88
