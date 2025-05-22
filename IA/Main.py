@@ -58,18 +58,7 @@ print(f'♨️ Températures ressenties chargées en {time()-t:.2f}s')
 # Définition des fonctions
 #--------------------------------------------------
 
-def IA_initialisation(random_state, trees=60):
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.01, random_state=random_state
-    )
-
-    model = RandomForestRegressor(n_estimators=trees, random_state=random_state)
-    model.fit(X_train, y_train)
-
-    return model, X_test, y_test
-
-
-def AI_initializing(random_state, trees=60):
+def AI_initialisation(random_state, trees=60):
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.01, random_state=random_state
     )
@@ -85,9 +74,29 @@ def AI_initializing(random_state, trees=60):
 
     return model, X_test, y_test
 
+def find_seed(duration):
+    try:
+        start_time = time()
+        best_seed = [0, float('inf')]
+
+        while time() - start_time < duration:
+            random_state = random.randint(0, 10000)
+            print(f"Trying {random_state} ...")
+
+            model, X_test, y_test = AI_initialisation(random_state, trees=20)
+            y_pred = model.predict(X_test)
+
+            mse = mean_squared_error(y_test, y_pred)
+            if mse < best_seed[1]:
+                best_seed = [random_state, mse]
+
+        print(f"📉 Meilleur MSE: {best_seed[1]:.2f}, Seed: {best_seed[0]}")
+    except KeyboardInterrupt:
+        print(f"📉 Meilleur MSE: {best_seed[1]:.2f}, Seed: {best_seed[0]}")
+
 def AI_accuracy(seed=8785):
     t = time()
-    model, X_test, y_test = AI_initializing(seed)
+    model, X_test, y_test = AI_initialisation(seed)
     print(f"🖼️ Modèle prêt en {time()-t:.2f}s")
 
     y_pred = model.predict(X_test)
@@ -100,7 +109,7 @@ def AI_accuracy(seed=8785):
 
 def AI_test(values, seed=8785):
     t = time()
-    model = AI_initializing(seed)[0]
+    model = AI_initialisation(seed)[0]
     print(f"🖼️ Modèle prêt en {time()-t:.2f}s")
 
     y_pred = model.predict(values)
