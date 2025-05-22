@@ -45,7 +45,7 @@ def find_seed(duration):
             random_state = random.randint(0, 10000)
             print(f"Trying {random_state} ...")
 
-            model, X_test, y_test = AI_initializing(random_state, trees=20)
+            model, X_test, y_test = AI_initializing(random_state, trees=15)
             y_pred = model.predict(X_test)
 
             mse = mean_squared_error(y_test, y_pred)
@@ -92,15 +92,15 @@ duration = '1:00:00'
 h, m, s = map(int, duration.split(':'))
 duration_seconds = h * 3600 + m * 60 + s
 
-# find_seed(duration_seconds)
+find_seed(duration_seconds)
 
 # test = np.array([29.08,1.786,77.98,240.0517]).reshape(1, -1) # -> 31.1
 # test = np.array([25.114,1.826183,90.0647,58.5357]).reshape(1, -1) # -> 24.88
 # test = np.array([24.65825000000001,0.366725,95.07833333333328,0.074775]).reshape(1, -1) # -> 32.74
 # test = np.array([24.301250000000003,1.259183333333333,69.69758333333333,445.9791666666666]).reshape(1, -1) # -> 17.01
 # test = array([25.1475,5.092041666666666,73.75066666666669,792.515]).reshape(1, -1) # -> 22.13
-test = array([23.98825,0.5747583333333337,92.74583333333337,12.812108333333333]).reshape(1, -1) # -> 31.19
+# test = array([23.98825,0.5747583333333337,92.74583333333337,12.812108333333333]).reshape(1, -1) # -> 31.19
 
-AI_test(test)
+# AI_test(test)
 
 # AI_accuracy()

@@ -1,3 +1,15 @@
+'''
+ # @ Auteur: Mathéo Guillot--Eid
+ # @ Crée le: 2025-01-29 09:11:30
+ # @ Modifié par: Mathéo Guillot--Eid
+ # @ Modifié le: 2025-05-22 13:08:03
+ # @ Description: Script principal pour traiter différente données et calculer la température ressentie
+ '''
+
+#--------------------------------------------------
+# Importation des librairies
+#--------------------------------------------------
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -13,6 +25,10 @@ path += [dirSrc, dirPath]
 
 import OtherProcessing as op
 
+#--------------------------------------------------
+# Importation des données
+#--------------------------------------------------
+
 # Définition des chemins et du fichier de données
 dirPath = os.path.dirname(os.path.realpath(__file__))  # Chemin du script
 
@@ -20,7 +36,13 @@ dirSrc = dirPath[0:dirPath.rfind(os.sep)]  # Répertoire parent
 adr = dirSrc + os.sep + 'data' + os.sep + 'full-data-st_pierre2-2024.csv'
 adrTr = dirSrc + os.sep + 'data' + os.sep + 'data-Tressentie.csv'
 
-# Constantes pour les calculs thermiques
+# Chargement des données
+df_base = pd.read_csv(adr, sep=";", parse_dates=["date"])
+
+#--------------------------------------------------
+# Définition des constantes
+#--------------------------------------------------
+
 T_corps = 37  # Température corporelle (°C)
 R_th = 0.3  # Résistance thermique (m²K/W)
 R_th_standard = 0.1  # Résistance thermique standard (m²K/W)
@@ -38,8 +60,9 @@ I_values = np.array([op.solar_irradiance(t, t_s, t_c) for t in heures])
 am = I_values[:np.argmax(I_values)]
 pm = I_values[np.argmax(I_values):]
 
-# Chargement des données
-df_base = pd.read_csv(adr, sep=";", parse_dates=["date"])
+#--------------------------------------------------
+# Définition des fonctions
+#--------------------------------------------------
 
 def get_index(df, daytime):
     target_datetime = pd.Timestamp(daytime, tz='+04:00')
@@ -52,25 +75,6 @@ def get_index(df, daytime):
 rm_dt = get_index(df_base, "2024-01-28 21:00+04:00")
 df_base = df_base.drop(index=range(rm_dt, rm_dt + 15)).reset_index(drop=True)
 
-# Extraire l'heure de la colonne 'date' pour faciliter le filtrage
-df_base['hour'] = df_base['date'].dt.hour
-
-# Créer les quatre DataFrames selon les plages horaires
-df_matin = df_base[(df_base['hour'] >= 6) & (df_base['hour'] <= 11)].copy()
-df_journee = df_base[(df_base['hour'] >= 11) & (df_base['hour'] <= 17)].copy()
-df_soir = df_base[(df_base['hour'] >= 17) & (df_base['hour'] <= 20)].copy()
-df_nuit = df_base[(df_base['hour'] <= 5) | (df_base['hour'] >= 21)].copy()
-
-# Supprimer la colonne temporaire 'hour' des DataFrames pour revenir au format initial
-df_matin = df_matin.drop(columns=['hour'])
-df_journee = df_journee.drop(columns=['hour'])
-df_soir = df_soir.drop(columns=['hour'])
-df_nuit = df_nuit.drop(columns=['hour'])
-
-# print("df_matin shape:", df_matin.shape)
-# print("df_journee shape:", df_journee.shape)
-# print("df_soir shape:", df_soir.shape)
-# print("df_nuit shape:", df_nuit.shape)
 
 def reading(df, daytime, index, show=False):
     """Calcule la température ressentie en fonction des paramètres météorologiques."""
@@ -102,7 +106,7 @@ def reading(df, daytime, index, show=False):
         dirSol = op.fonction_logistique(np.pi*0.055, S_corps*0.25, time ,change=16.5, vitesse=2)
 
     # Flux solaire incident sur le corps (W)
-    Phi_solaire = df.at[index, 'Rglo'] * (dirSol/S_corps)  # (W/m²) = W/m²
+    Phi_solaire = df.at[index, 'Rglo'] * (dirSol)  # (W/m²) = W/m²
 
     # Flux thermique dû au vent (W)
     Phi_vent = -h * (T_corps - T_station)  # (W/m²·K) * (°C) = W/m²
@@ -257,9 +261,12 @@ def extraire_T_ressentie():
     return vecteur_temp
 
 if __name__ == '__main__':
-    print(np.shape(extraire_donnees(df_base)))
-    print(np.shape(extraire_dates(df_base)))
-    print(np.shape(extraire_T_ressentie()))
-    # draw()
+    # print(np.shape(extraire_donnees(df_base)))
+    # print(np.shape(extraire_dates(df_base)))
+    # print(np.shape(extraire_T_ressentie()))
+    draw()
 
-    # read_m('2024-01-01-12:00', 24)
+    # read_m('2024-04-09-12:00', 0)
+    # read_m('2024-08-12-12:00', 0)
+    # read_m('2024-12-19-12:00', 0)
+    # read_m('2024-06-23-12:00', 0)
