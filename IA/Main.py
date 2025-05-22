@@ -1,5 +1,16 @@
+'''
+ # @ Auteur: Mathéo Guillot--Eid, Baptiste Argemi
+ # @ Crée le: 2025-05-22 13:56:56
+ # @ Modifié par: Mathéo Guillot--Eid
+ # @ Modifié le: 2025-05-22 14:00:23
+ # @ Description:
+ '''
+
+#--------------------------------------------------
+# Importation des librairies
+#--------------------------------------------------
+
 import os
-from os.path import dirname, realpath, sep
 from sys import path
 from time import time
 try:
@@ -17,13 +28,18 @@ except Exception:
     os.system("pip install numpy")
     from numpy import random, array
 
-dirPath = dirname(realpath(__file__))
-dirSrc = dirPath[0:dirPath.rfind(sep)]
+dirPath = os.path.dirname(os.path.realpath(__file__))
+dirSrc = dirPath[0:dirPath.rfind(os.sep)]
 path += [dirSrc, dirPath]
 
 from scripts.CSVprocessing import extraire_donnees
 from scripts.CSVprocessing import extraire_dates
 from scripts.CSVprocessing import extraire_T_ressentie
+
+
+#--------------------------------------------------
+# Importation des données
+#--------------------------------------------------
 
 t = time()
 X = extraire_donnees()
@@ -37,6 +53,11 @@ print(f'♨️ Températures ressenties chargées en {time()-t:.2f}s')
 
 # noms_donnees = ['Tair','Ws10','RH','Rglo']
 
+
+#--------------------------------------------------
+# Définition des fonctions
+#--------------------------------------------------
+
 def IA_initialisation(random_state, trees=60):
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.01, random_state=random_state
@@ -47,12 +68,16 @@ def IA_initialisation(random_state, trees=60):
 
     return model, X_test, y_test
 
-def find_seed(duration):
+
+def find_seed(duration='1:00:00'):
+
+    h, m, s = map(int, duration.split(':'))
+    duration_seconds = h * 3600 + m * 60 + s
     try:
         start_time = time()
         best_seed = [0, float('inf')]
 
-        while time() - start_time < duration:
+        while time() - start_time < duration_seconds:
             random_state = random.randint(0, 10000)
             print(f"Trying {random_state} ...")
 
@@ -67,14 +92,6 @@ def find_seed(duration):
     except KeyboardInterrupt:
         print(f"📉 Meilleur MSE: {best_seed[1]:.2f}, Seed: {best_seed[0]}")
 
-# Accuracy: 0.64, Seed: 6110 -> Dates
-# Accuracy: 0.64, Seed: 8024 -> Dates
-# Accuracy: 0.65, Seed: 8849 -> Dates
-
-# Accuracy: 0.60, Seed: 7029 -> Temp
-# Accuracy: 0.69, Seed: 7527 -> Temp
-
-# Meilleur MSE: 0.38, Seed: 8785 -> Temp
 
 def AI_accuracy(seed=8785):
     t = time()
@@ -89,6 +106,7 @@ def AI_accuracy(seed=8785):
     print(f"📉 Erreur quadratique moyenne (MSE): {mse:.2f}")
     print(f"📈 Coefficient de détermination R² : {r2*100:.2f}%")
 
+
 def AI_test(values, seed=8785):
     t = time()
     model = IA_initialisation(seed)[0]
@@ -96,14 +114,22 @@ def AI_test(values, seed=8785):
 
     y_pred = model.predict(values)
     print(f"🌡️ Température ressentie prédite: {y_pred[0]:.2f}°C")
+    
 
+#--------------------------------------------------
+# Utilisation
+#--------------------------------------------------
 
+# Accuracy: 0.64, Seed: 6110 -> Dates
+# Accuracy: 0.64, Seed: 8024 -> Dates
+# Accuracy: 0.65, Seed: 8849 -> Dates
 
-duration = '1:00:00'
-h, m, s = map(int, duration.split(':'))
-duration_seconds = h * 3600 + m * 60 + s
+# Accuracy: 0.60, Seed: 7029 -> Temp
+# Accuracy: 0.69, Seed: 7527 -> Temp
 
-find_seed(duration_seconds)
+# Meilleur MSE: 0.38, Seed: 8785 -> Temp
+
+find_seed(duration='0:00:10')
 
 # test = np.array([29.08,1.786,77.98,240.0517]).reshape(1, -1) # -> 31.1
 # test = np.array([25.114,1.826183,90.0647,58.5357]).reshape(1, -1) # -> 24.88
